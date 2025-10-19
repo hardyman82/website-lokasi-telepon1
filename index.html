@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cari Lokasi Berdasarkan Nomor Telepon</title>
+    <!-- Bootstrap untuk responsivitas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Leaflet untuk peta interaktif -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f8f9fa; }
+        .hero { background: linear-gradient(to right, #007bff, #28a745); color: white; padding: 50px 0; text-align: center; }
+        #map { height: 400px; width: 100%; margin-top: 20px; }
+        .result { margin-top: 20px; }
+        .disclaimer { font-size: 12px; color: #666; margin-top: 20px; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Cari Lokasi Telepon</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Cari Lokasi Berdasarkan Nomor Telepon</h1>
+            <p>Masukkan nomor telepon untuk menemukan lokasi terkait. Hanya untuk tujuan informasi umum.</p>
+        </div>
+    </section>
+
+    <!-- Form Input -->
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <form id="search-form">
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Nomor Telepon (Format Internasional, e.g., +628123456789)</label>
+                        <input type="text" class="form-control" id="phone" placeholder="+62xxxxxxxxx" required>
+                        <div class="error" id="error-msg"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cari Lokasi</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hasil Pencarian -->
+    <div class="container mt-4 result" id="result-section" style="display: none;">
+        <h3>Hasil Pencarian</h3>
+        <div id="address-result"></div>
+        <div id="map"></div>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="container mt-4">
+        <p class="disclaimer">
+            <strong>Disclaimer Privasi:</strong> Pencarian ini hanya untuk tujuan informasi umum. Kami tidak menyimpan data pribadi Anda. Pastikan penggunaan sesuai hukum dan hormati privasi orang lain. Website ini menggunakan data simulasi untuk demo dan tidak mengakses lokasi nyata tanpa izin.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-3 mt-4">
+        <p>&copy; 2023 Cari Lokasi Telepon. Dibuat untuk demo edukasi.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Data simulasi untuk demo (ganti dengan API nyata jika diperlukan, e.g., OpenCage untuk geocoding)
+        // Catatan: Tidak ada API publik yang akurat untuk reverse phone lookup lokasi real-time tanpa izin.
+        const simulatedData = {
+            '+628123456789': { address: 'Jl. Sudirman No. 1, Jakarta Pusat, Indonesia', lat: -6.2088, lng: 106.8456 },
+            '+62211234567': { address: 'Jl. Malioboro No. 10, Yogyakarta, Indonesia', lat: -7.7956, lng: 110.3695 },
+            '+62311234567': { address: 'Jl. Gajah Mada No. 5, Surabaya, Indonesia', lat: -7.2575, lng: 112.7521 }
+        };
+
+        // Inisialisasi peta (Leaflet)
+        let map;
+        function initMap(lat, lng) {
+            if (map) map.remove(); // Hapus peta sebelumnya
+            map = L.map('map').setView([lat, lng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            L.marker([lat, lng]).addTo(map).bindPopup('Lokasi Ditemukan').openPopup();
+        }
+
+        // Validasi nomor telepon (regex sederhana untuk format internasional)
+        function validatePhone(phone) {
+            const regex = /^\+\d{10,15}$/; // + diikuti 10-15 digit
+            return regex.test(phone);
+        }
+
+        // Fungsi pencarian
+        document.getElementById('search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const phone = document.getElementById('phone').value.trim();
+            const errorMsg = document.getElementById('error-msg');
+            const resultSection = document.getElementById('result-section');
+            const addressResult = document.getElementById('address-result');
+
+            errorMsg.textContent = '';
+            resultSection.style.display = 'none';
+
+            if (!validatePhone(phone)) {
+                errorMsg.textContent = 'Format nomor telepon tidak valid. Gunakan format +62xxxxxxxxx.';
+                return;
+            }
+
+            // Simulasi pencarian (ganti dengan fetch API jika menggunakan layanan nyata)
+            const data = simulatedData[phone];
+            if (data) {
+                addressResult.textContent = `Alamat: ${data.address}`;
+                initMap(data.lat, data.lng);
+                resultSection.style.display = 'block';
+            } else {
+                errorMsg.textContent = 'Lokasi tidak ditemukan untuk nomor telepon ini. Coba nomor lain.';
+            }
+        });
+
+        // Fungsi reset
+        function resetForm() {
+            document.getElementById('phone').value = '';
+            document.getElementById('error-msg').textContent = '';
+            document.getElementById('result-section').style.display = 'none';
+            if (map) map.remove();
+        }
+    </script>
+</body>
+</html>
